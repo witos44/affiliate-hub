@@ -1,7 +1,11 @@
 name = "affiliate-hub"
 compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
 
 [[d1_databases]]
 binding = "DB"
 database_name = "affiliate_hub_db"
 database_id = "f492299c-7020-4686-9f6e-469040b1e1d9"
+
+[observability]
+enabled = true

@@ -1,0 +1,9 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/adenslab-review/page": "app/adenslab-review/page.js",
+  "/admin/stats/page": "app/admin/stats/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/out/[slug]/route": "app/out/[slug]/route.js",
+  "/page": "app/page.js"
+}
