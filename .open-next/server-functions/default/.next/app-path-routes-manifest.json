@@ -1,9 +1,0 @@
-{
-  "/_global-error/page": "/_global-error",
-  "/_not-found/page": "/_not-found",
-  "/adenslab-review/page": "/adenslab-review",
-  "/admin/stats/page": "/admin/stats",
-  "/favicon.ico/route": "/favicon.ico",
-  "/out/[slug]/route": "/out/[slug]",
-  "/page": "/"
-}
