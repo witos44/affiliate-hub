@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "affiliate-hub-tracker",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-01-01",
+  
+  // Hubungkan Worker ke database D1 Anda
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "affiliate_hub_db",
+      "database_id": "f492299c-7020-4686-9f6e-469040b1e1d9"
+    }
+  ],
+
+  
+}

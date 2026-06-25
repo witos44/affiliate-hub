@@ -1,0 +1,20 @@
+# Next.js build output
+.next/
+out/
+build/
+
+# Cloudflare Wrangler local state & logs
+.wrangler/
+.dev.vars
+wrangler-*.log
+
+# Node modules
+node_modules/
+dist/
+
+# Local database schema exports we don't need on GitHub
+schema.sql
+
+# OS logs
+.DS_Store
+Thumbs.db
