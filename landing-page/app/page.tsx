@@ -1,8 +1,7 @@
 import { featuredOffers } from "@/data/offfers";
 
 export default function HomePage() {
-  // Selama development lokal, arahkan ke port tracker (8787)
-  const TRACKER_BASE_URL = "http://localhost:8787/out/";
+  const TRACKER_BASE_URL = process.env.NEXT_PUBLIC_TRACKER_URL || "http://localhost:8787/out/";
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
