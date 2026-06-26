@@ -1,6 +1,15 @@
 // File: app/admin/campaigns/[id]/page.tsx
 import Link from "next/link";
 
+// FUNGSI WAJIB UNTUK CLOUDFLARE PAGES (SSG / OUTPUT: EXPORT)
+export function generateStaticParams() {
+  return [
+    { id: '1' },
+    { id: '2' },
+    { id: '3' },
+  ];
+}
+
 export default function CampaignEditPage({ params }: { params: { id: string } }) {
   // NANTINYA: Data ini akan di-fetch dari D1 berdasarkan params.id
   // Untuk sementara, kita gunakan dummy data agar desain form terlihat
