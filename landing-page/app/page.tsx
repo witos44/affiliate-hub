@@ -1,7 +1,15 @@
 import { featuredOffers } from "@/data/offfers";
 
 export default function HomePage() {
-  const TRACKER_BASE_URL = process.env.NEXT_PUBLIC_TRACKER_URL || "http://localhost:8787/out/";
+  // Memeriksa apakah kode berjalan di komputer lokal (development) atau di server (production)
+  const isDevelopment = typeof window !== "undefined" 
+    ? window.location.hostname === "localhost" 
+    : process.env.NODE_ENV === "development";
+
+  // URL dikunci secara absolut tanpa bergantung pada Environment Variables Dashboard
+  const TRACKER_BASE_URL = isDevelopment
+    ? "http://localhost:8787/out/"
+    : "https://affiliate-hub-tracker.affiliate-hub.workers.dev/out/";
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
