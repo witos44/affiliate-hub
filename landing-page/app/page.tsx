@@ -1,12 +1,9 @@
 import { featuredOffers } from "@/data/offfers";
 
 export default function HomePage() {
-  // Memeriksa apakah kode berjalan di komputer lokal (development) atau di server (production)
-  const isDevelopment = typeof window !== "undefined" 
-    ? window.location.hostname === "localhost" 
-    : process.env.NODE_ENV === "development";
+  // Menggunakan pengecekan environment murni karena output: 'export' dievaluasi saat build time
+  const isDevelopment = process.env.NODE_ENV === "development";
 
-  // URL dikunci secara absolut tanpa bergantung pada Environment Variables Dashboard
   const TRACKER_BASE_URL = isDevelopment
     ? "http://localhost:8787/out/"
     : "https://affiliate-hub-tracker.affiliate-hub.workers.dev/out/";
