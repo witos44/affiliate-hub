@@ -6,16 +6,19 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     
+    // Tempat kembali yang aman (Frontend Anda) agar tidak terjadi infinite loop
+    const FRONTEND_URL = 'https://affiliate-hub-eej.pages.dev';
+    
     const pathParts = url.pathname.split('/');
     // Gunakan .trim() untuk membuang spasi kosong jika tidak sengaja ada di URL
     const slug = pathParts[2] ? pathParts[2].trim() : "";
 
+    // Jika tidak ada slug, kembalikan ke landing page frontend (bukan ke worker lagi)
     if (!slug) {
-      return Response.redirect('https://' + url.hostname, 302);
+      return Response.redirect(FRONTEND_URL, 302);
     }
 
     try {
-      // MODIFIKASI: Hapus "AND active = 1" dulu untuk pengetesan awal
       const offer = await env.DB.prepare(
         "SELECT destination_url FROM offers WHERE slug = ? LIMIT 1"
       ).bind(slug).first<{ destination_url: string }>();
@@ -23,16 +26,22 @@ export default {
       // Jika data benar-benar kosong di database
       if (!offer) {
         console.log(`[DEBUG] Query mengembalikan NULL. Slug "${slug}" tidak ditemukan di tabel.`);
-        return Response.redirect('https://' + url.hostname, 302);
+        return Response.redirect(FRONTEND_URL, 302);
       }
 
       // Jika data ada tapi kolom destination_url ternyata kosong/null
       if (!offer.destination_url) {
         console.log(`[DEBUG] Baris data ditemukan, tetapi kolom destination_url kosong.`);
-        return Response.redirect('https://' + url.hostname, 302);
+        return Response.redirect(FRONTEND_URL, 302);
       }
 
-      const targetUrl = offer.destination_url;
+      let targetUrl = offer.destination_url.trim();
+      
+      // Keamanan ekstra: Pastikan URL memiliki awalan protokol agar browser tidak error
+      if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+        targetUrl = 'https://' + targetUrl;
+      }
+
       console.log(`[DEBUG] BERHASIL! Target URL ditemukan: ${targetUrl}`);
 
       // 2. LOGGING ASYNC (Mencatat log klik ke tabel outbound_clicks)
@@ -64,7 +73,8 @@ export default {
 
     } catch (error: any) {
       console.error("❌ Tracker Error:", error.message || error);
-      return Response.redirect('https://' + url.hostname, 302);
+      // Lempar kembali ke frontend jika database sedang down/error
+      return Response.redirect(FRONTEND_URL, 302);
     }
   },
 };

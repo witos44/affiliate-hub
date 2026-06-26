@@ -9,7 +9,7 @@ export interface Offer {
 export const featuredOffers: Offer[] = [
   {
     id: "1",
-    slug: "offer_adenslab",
+    slug: "adenslab",
     name: "Ads Campaign Automation With AdensLab",
     merchantName: "AdensLab",
     description: "Automasi campaign iklan Anda dengan optimasi cerdas berbasis data.",
