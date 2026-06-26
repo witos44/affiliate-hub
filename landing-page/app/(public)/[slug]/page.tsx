@@ -1,4 +1,13 @@
-// File: app/(public)/[slug]/page.tsx
+// app/(public)/[slug]/page.tsx
+
+export function generateStaticParams() {
+  // Array ini memberitahu Next.js halaman statis apa saja yang harus dibuat saat proses 'npm run build'
+  return [
+    { slug: 'ad-automation' },
+    { slug: 'scaling-case-study' },
+    { slug: 'exclusive-bonus' },
+  ];
+}
 
 export default function DynamicLandingPage({ params }: { params: { slug: string } }) {
   // NANTINYA: Di sini kita akan menembak API Worker untuk mengambil data 
