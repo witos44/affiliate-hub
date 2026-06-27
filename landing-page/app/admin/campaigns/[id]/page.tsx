@@ -1,15 +1,23 @@
-// app/(public)/[slug]/page.tsx
+// app/campaigns/[id]/page.tsx
+
 import { CheckCircle, ArrowRight, TrendingUp, ShieldCheck, Zap } from "lucide-react";
 import Link from "next/link";
 
-// 1. FUNGSI WAJIB UNTUK BUILD STATIS
-export function generateStaticParams() {
+// ============================================================================
+// 1. GENERATE STATIC PARAMS (WAJIB untuk static export)
+// ============================================================================
+export async function generateStaticParams() {
+  // Semua harus menggunakan properti "id" karena parameter rute adalah [id]
   return [
-    { slug: 'ad-automation' },
-    { slug: 'scaling-case-study' },
-    { slug: 'exclusive-bonus' },
+    { id: 'ad-automation' },
+    { id: 'scaling-case-study' },
+    { id: 'exclusive-bonus' },
   ];
 }
+
+// Opsional: jika ingin edge runtime di Cloudflare
+// export const runtime = 'edge';
+export const dynamic = 'force-static';
 
 // ============================================================================
 // TEMPLATE 1: THE DIRECT PROBLEM-SOLUTION (B2B / Aggressive & Professional)
@@ -17,7 +25,6 @@ export function generateStaticParams() {
 function TemplateProblemSolution({ trackerUrl }: { trackerUrl: string }) {
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section */}
       <section className="relative px-6 py-24 sm:py-32 lg:px-8 bg-slate-50 border-b border-slate-200">
         <div className="mx-auto max-w-4xl text-center">
           <span className="text-sm font-bold tracking-wider text-indigo-600 uppercase mb-4 block">
@@ -41,7 +48,6 @@ function TemplateProblemSolution({ trackerUrl }: { trackerUrl: string }) {
         </div>
       </section>
 
-      {/* Features / Benefits */}
       <section className="py-24 px-6 sm:px-8 max-w-6xl mx-auto">
         <div className="grid md:grid-cols-3 gap-12 text-center md:text-left">
           <div>
@@ -119,9 +125,9 @@ function TemplateCaseStudy({ trackerUrl }: { trackerUrl: string }) {
             </p>
             
             <ul className="space-y-4 font-bold text-slate-800 my-10 bg-emerald-50 p-8 rounded-2xl border border-emerald-100">
-              <li className="flex gap-4 items-center"><CheckCircle className="w-7 h-7 text-emerald-500 flex-shrink-0" /> Cost Per Acquisition (CPA) dropped by a massive 47%.</li>
-              <li className="flex gap-4 items-center"><CheckCircle className="w-7 h-7 text-emerald-500 flex-shrink-0" /> Overall ROAS skyrocketed to 4.2x within 7 days.</li>
-              <li className="flex gap-4 items-center"><CheckCircle className="w-7 h-7 text-emerald-500 flex-shrink-0" /> Daily revenue hit $10,000 completely hands-free.</li>
+              <li className="flex gap-4 items-center"><CheckCircle className="w-7 h-7 text-emerald-500 shrink-0" /> Cost Per Acquisition (CPA) dropped by a massive 47%.</li>
+              <li className="flex gap-4 items-center"><CheckCircle className="w-7 h-7 text-emerald-500 shrink-0" /> Overall ROAS skyrocketed to 4.2x within 7 days.</li>
+              <li className="flex gap-4 items-center"><CheckCircle className="w-7 h-7 text-emerald-500 shrink-0" /> Daily revenue hit $10,000 completely hands-free.</li>
             </ul>
             
             <p>
@@ -154,7 +160,6 @@ function TemplateBonus({ trackerUrl }: { trackerUrl: string }) {
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 sm:p-8">
       <div className="max-w-5xl w-full bg-white rounded-[2rem] overflow-hidden shadow-2xl flex flex-col md:flex-row relative">
         
-        {/* Left Side - Value / Offer */}
         <div className="p-10 sm:p-16 md:w-3/5">
           <div className="inline-block bg-red-100 text-red-600 text-sm font-extrabold px-4 py-2 rounded-full uppercase tracking-widest mb-8">
             Flash Bonus Offer
@@ -194,9 +199,8 @@ function TemplateBonus({ trackerUrl }: { trackerUrl: string }) {
           </p>
         </div>
 
-        {/* Right Side - Visual & Pricing */}
         <div className="bg-slate-50 md:w-2/5 p-10 border-l border-slate-100 flex flex-col items-center justify-center text-center">
-          <div className="w-full aspect-square max-w-[280px] bg-slate-200 rounded-3xl shadow-inner mb-8 flex items-center justify-center text-slate-400 font-bold text-xl border-8 border-white shadow-2xl rotate-6 transition-transform hover:rotate-0">
+          <div className="w-full aspect-square max-w-70 bg-slate-200 rounded-3xl mb-8 flex items-center justify-center text-slate-400 font-bold text-xl border-8 border-white shadow-2xl rotate-6 transition-transform hover:rotate-0">
             [Insert E-Cover / Notion Template Mockup Here]
           </div>
           <div className="bg-white px-8 py-6 rounded-2xl shadow-sm border border-slate-100 w-full">
@@ -212,29 +216,34 @@ function TemplateBonus({ trackerUrl }: { trackerUrl: string }) {
 }
 
 // ============================================================================
-// MAIN COMPONENT (ROUTER LOGIC)
+// MAIN COMPONENT (DIPERBAIKI UNTUK NEXT.JS 16)
 // ============================================================================
-export default function DynamicLandingPage({ params }: { params: { slug: string } }) {
-  // Tracker URL that records the click and redirects to the Merchant
-  const trackerUrl = `https://affiliate-hub-tracker.affiliate-hub.workers.dev/out/${params.slug}`;
+export default async function DynamicLandingPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  // Await params karena Next.js 16 mengirim sebagai Promise
+  const { id } = await params;
 
-  // Routing logic based on slug
-  switch (params.slug) {
+  // Tracker URL menggunakan id (yang bertindak sebagai slug)
+  const trackerUrl = `https://affiliate-hub-tracker.affiliate-hub.workers.dev/out/${id}`;
+
+  // Routing berdasarkan id (slug)
+  switch (id) {
     case "ad-automation":
       return <TemplateProblemSolution trackerUrl={trackerUrl} />;
-    
     case "scaling-case-study":
       return <TemplateCaseStudy trackerUrl={trackerUrl} />;
-    
     case "exclusive-bonus":
       return <TemplateBonus trackerUrl={trackerUrl} />;
-      
-    // Fallback if slug is not recognized
     default:
       return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-900">
           <h1 className="text-4xl font-bold mb-4">Offer Not Found</h1>
-          <p className="text-slate-500 mb-8">The campaign you are looking for may have ended or the URL is incorrect.</p>
+          <p className="text-slate-500 mb-8">
+            The campaign you are looking for may have ended or the URL is incorrect.
+          </p>
           <Link href="/" className="text-indigo-600 hover:underline">
             Return to Homepage
           </Link>

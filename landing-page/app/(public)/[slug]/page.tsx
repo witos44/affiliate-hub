@@ -1,41 +1,47 @@
-// app/(public)/[slug]/page.tsx
+import { notFound } from "next/navigation";
+
+import { landingPages } from "@/data/landing-pages";
+
+import LandingPage from "@/components/public/LandingPage";
 
 export function generateStaticParams() {
-  // Array ini memberitahu Next.js halaman statis apa saja yang harus dibuat saat proses 'npm run build'
-  return [
-    { slug: 'ad-automation' },
-    { slug: 'scaling-case-study' },
-    { slug: 'exclusive-bonus' },
-  ];
+
+  return Object.keys(landingPages).map((slug) => ({
+
+    slug
+
+  }));
+
 }
 
-export default function DynamicLandingPage({ params }: { params: { slug: string } }) {
-  // NANTINYA: Di sini kita akan menembak API Worker untuk mengambil data 
-  // copywriting berdasarkan params.slug (misal: "ad-automation")
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const landing = landingPages[slug];
 
-  return (
-    <div className="min-h-screen bg-white text-gray-900 flex flex-col items-center justify-center p-4">
-      <div className="max-w-2xl text-center">
-        <span className="text-sm font-bold tracking-wider text-indigo-600 uppercase mb-4 block">
-          Preview Mode
-        </span>
-        <h1 className="text-4xl font-extrabold tracking-tight mb-6 sm:text-5xl">
-          Landing Page: <span className="text-indigo-600">{params.slug}</span>
-        </h1>
-        <p className="text-lg text-gray-500 mb-8">
-          Halaman ini bersifat dinamis. Teks, gambar, dan angle penawaran untuk kampanye <strong>{params.slug}</strong> akan dimuat dari database D1.
-        </p>
-        
-        {/* Tombol Tracker yang akan diarahkan sesuai slug */}
-        <a
-          href={`https://affiliate-hub-tracker.affiliate-hub.workers.dev/out/${params.slug}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition-all"
-        >
-          Ambil Promo ↗
-        </a>
-      </div>
-    </div>
-  );
+  if (!landing) return {};
+
+  return {
+    title: landing.seo.title,
+    description: landing.seo.description,
+    keywords: landing.seo.keywords,
+  };
+}
+
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const landing = landingPages[slug];
+
+  if (!landing) {
+    notFound();
+  }
+
+  return <LandingPage landing={landing} />;
 }
