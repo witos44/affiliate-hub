@@ -24,19 +24,22 @@ export default function AdminDashboard() {
       title: "Total Page Views", 
       value: "1,240", 
       trend: "+12.5% dari bulan lalu", 
-      icon: Eye 
+      icon: Eye,
+      trendUp: true
     },
     { 
       title: "Outbound Clicks", 
       value: "385", 
       trend: "+18.2% dari bulan lalu", 
-      icon: MousePointerClick 
+      icon: MousePointerClick,
+      trendUp: true
     },
     { 
       title: "Avg. Conversion Rate", 
       value: "31.0%", 
       trend: "+4.1% dari bulan lalu", 
-      icon: TrendingUp 
+      icon: TrendingUp,
+      trendUp: true
     },
   ];
 
@@ -47,6 +50,20 @@ export default function AdminDashboard() {
     { id: 3, campaign: "Promo Adenslab B2B", source: "Direct", status: "Converted", time: "1 jam lalu" },
     { id: 4, campaign: "Notion Template Bonus", source: "Email Newsletter", status: "Bounced", time: "3 jam lalu" },
   ];
+
+  // Fungsi untuk menentukan variant badge berdasarkan status
+  const getBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'Converted':
+        return 'default';
+      case 'Viewed':
+        return 'secondary';
+      case 'Bounced':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  };
 
   return (
     <div className="flex-1 space-y-6 p-2 md:p-4 pt-6">
@@ -66,7 +83,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className={`text-xs mt-1 ${stat.trendUp ? 'text-green-600' : 'text-red-600'}`}>
                 {stat.trend}
               </p>
             </CardContent>
@@ -75,8 +92,8 @@ export default function AdminDashboard() {
       </div>
 
       {/* Tabel Live Traffic Menggunakan Table shadcn */}
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7 mt-4">
-        <Card className="col-span-1 lg:col-span-7">
+      <div className="grid gap-4 grid-cols-1 mt-4">
+        <Card className="col-span-1">
           <CardHeader>
             <CardTitle>Live Traffic & Clicks</CardTitle>
             <CardDescription>
@@ -99,12 +116,7 @@ export default function AdminDashboard() {
                     <TableCell className="font-medium">{traffic.campaign}</TableCell>
                     <TableCell>{traffic.source}</TableCell>
                     <TableCell>
-                      <Badge 
-                        variant={
-                          traffic.status === 'Converted' ? 'default' : 
-                          traffic.status === 'Viewed' ? 'secondary' : 'destructive'
-                        }
-                      >
+                      <Badge variant={getBadgeVariant(traffic.status)}>
                         {traffic.status}
                       </Badge>
                     </TableCell>
