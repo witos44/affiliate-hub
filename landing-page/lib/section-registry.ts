@@ -1,5 +1,4 @@
 // lib/section-registry.ts
-
 import type { ComponentType } from "react";
 
 import Hero from "@/components/landing/sections/Hero/Hero";
@@ -17,36 +16,21 @@ import Video from "@/components/landing/sections/Video/Video";
 
 import type { SectionSettings } from "@/types/section";
 
-export type SectionComponent = ComponentType<{
-  settings: SectionSettings;
-}>;
+export type SectionComponent = ComponentType<{ settings: SectionSettings }>;
 
 export const SectionRegistry: Record<string, SectionComponent> = {
-
   hero: Hero as SectionComponent,
-
   benefits: Benefits as SectionComponent,
-
   problem: Problem as SectionComponent,
-
   solution: Solution as SectionComponent,
-
   features: Features as SectionComponent,
-
   faq: FAQ as SectionComponent,
-
   cta: CTA as SectionComponent,
-
   comparison: Comparison as SectionComponent,
-
   gallery: Gallery as SectionComponent,
-
   pricing: Pricing as SectionComponent,
-
   testimonials: Testimonials as SectionComponent,
-
   video: Video as SectionComponent,
-
 };
 
 export type SectionType = keyof typeof SectionRegistry;
