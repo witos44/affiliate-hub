@@ -1,47 +1,40 @@
-import { notFound } from "next/navigation";
+// app/(public)/[slug]/page.tsx
 
-import { landingPages } from "@/data/landing-pages";
-
-import LandingPage from "@/components/public/LandingPage";
+import LandingRenderer from "@/components/landing/LandingRenderer";
+import { getLanding } from "@/lib/api";
 
 export function generateStaticParams() {
-
-  return Object.keys(landingPages).map((slug) => ({
-
-    slug
-
-  }));
-
+  return [
+    {
+      slug: "ads-campaign-automation",
+    },
+  ];
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  const landing = landingPages[slug];
-
-  if (!landing) return {};
-
-  return {
-    title: landing.seo.title,
-    description: landing.seo.description,
-    keywords: landing.seo.keywords,
-  };
+interface PageProps {
+  params: Promise<{
+    slug: string;
+  }>;
 }
 
-export default async function Page({
+export default async function LandingPage({
   params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+}: PageProps) {
   const { slug } = await params;
-  const landing = landingPages[slug];
+
+  const landing = await getLanding(slug);
 
   if (!landing) {
-    notFound();
+    return (
+      <div className="py-32 text-center">
+        Landing not found.
+      </div>
+    );
   }
 
-  return <LandingPage landing={landing} />;
+  return (
+    <LandingRenderer
+      sections={landing.sections}
+    />
+  );
 }

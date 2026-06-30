@@ -1,55 +1,23 @@
-export interface SeoData {
-  title: string;
-  description: string;
-  keywords: string[];
-}
+// types/landing.ts
 
-export interface HeroSection {
-  badge: string;
-  title: string;
-  subtitle: string;
-  cta: string;
-  image?: string;
-}
+import type { LandingSection } from "./section";
+import type { Offer } from "./offer";
 
-export interface ProblemSection {
-  title: string;
-  description: string;
-}
+export interface LandingPage {
 
-export interface SolutionSection {
-  title: string;
-  description: string;
-}
-
-export interface FeatureItem {
-  title: string;
-  description: string;
-}
-
-export interface FaqItem {
-  question: string;
-  answer: string;
-}
-
-export interface LandingPageData {
+  id: number;
   slug: string;
+  title: string;
+  template: string;
+  status: "draft" | "published";
+  offer: Offer;
+  sections: LandingSection[];
+}
 
-  offerSlug: string;
-
-  hero: HeroSection;
-
-  benefits: string[];
-
-  features: FeatureItem[];
-
-  problem: ProblemSection;
-
-  solution: SolutionSection;
-
-  trust: string[];
-
-  faqs: FaqItem[];
-
-  seo: SeoData;
+export interface LandingListItem {
+  id: number;
+  slug: string;
+  title: string;
+  template: string;
+  status: "draft" | "published";
 }
