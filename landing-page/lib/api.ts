@@ -1,5 +1,3 @@
-// lib/api.ts
-
 import { mockLanding } from "@/mocks/Landing";
 import { mockOffers } from "@/mocks/offers";
 
@@ -10,28 +8,32 @@ import type {
 
 export async function getLanding(
   slug: string
-): Promise<LandingPage> {
+): Promise<LandingPage | null> {
 
-  return Promise.resolve(mockLanding.data);
+  if (mockLanding.data.slug !== slug) {
+    return null;
+  }
+
+  return mockLanding.data;
 
 }
 
 export async function getLandingList(): Promise<LandingListItem[]> {
 
-  return Promise.resolve([
+  return [
     {
-      id: 1,
-      slug: "ads-campaign-automation",
-      title: "Ads Campaign Automation",
-      template: "default",
-      status: "published",
+      id: mockLanding.data.id,
+      slug: mockLanding.data.slug,
+      title: mockLanding.data.title,
+      template: mockLanding.data.template,
+      status: mockLanding.data.status,
     },
-  ]);
+  ];
 
 }
 
 export async function getOffers() {
 
-  return Promise.resolve(mockOffers);
+  return mockOffers;
 
 }

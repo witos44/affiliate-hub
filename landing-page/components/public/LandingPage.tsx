@@ -1,9 +1,21 @@
 // components/public/LandingPage.tsx
 
-import type { LandingPageData } from "@/types/landing";
+import type { LandingPage } from "@/types/landing";
+import type { LandingSection, HeroSettings, BenefitsSettings, FeaturesSettings, ProblemSettings, SolutionSettings, FAQSettings } from "@/types/section";
+
+import Hero from "@/components/landing/sections/Hero/Hero";
+import Benefits from "@/components/landing/sections/Benefits/Benefits";
+import Features from "@/components/landing/sections/Features/Features";
+import Problem from "@/components/landing/sections/Problem/Problem";
+import Solution from "@/components/landing/sections/Solution/Solution";
+import FAQ from "@/components/landing/sections/FAQ/FAQ";
 
 interface LandingPageProps {
-  landing: LandingPageData;
+  landing: LandingPage;
+}
+
+function getSectionByType(sections: LandingSection[], type: string): LandingSection | undefined {
+  return sections.find(s => s.type === type && s.isActive);
 }
 
 export default function LandingPage({ landing }: LandingPageProps) {
@@ -11,6 +23,22 @@ export default function LandingPage({ landing }: LandingPageProps) {
   const TRACKER_BASE_URL = isDevelopment
     ? "http://localhost:8787/out/"
     : "https://affiliate-hub-tracker.affiliate-hub.workers.dev/out/";
+
+  const heroSection = getSectionByType(landing.sections, "hero");
+  const benefitsSection = getSectionByType(landing.sections, "benefits");
+  const featuresSection = getSectionByType(landing.sections, "features");
+  const problemSection = getSectionByType(landing.sections, "problem");
+  const solutionSection = getSectionByType(landing.sections, "solution");
+  const faqSection = getSectionByType(landing.sections, "faq");
+
+  const getHeroButtonText = (): string => {
+    if (heroSection && heroSection.type === "hero") {
+      return (heroSection.settings as HeroSettings).buttonText;
+    }
+    return "Get Started";
+  };
+
+  const heroButtonText = getHeroButtonText();
 
   return (
     <>
@@ -23,21 +51,19 @@ export default function LandingPage({ landing }: LandingPageProps) {
         </div>
         <div className="relative max-w-6xl mx-auto px-6 py-24 lg:py-32">
           <div className="max-w-3xl">
-            <span className="inline-flex rounded-full bg-indigo-100 px-4 py-1 text-sm font-semibold text-indigo-700">
-              {landing.hero.badge}
-            </span>
-            <h1 className="mt-8 text-5xl md:text-6xl font-black tracking-tight leading-tight">
-              {landing.hero.title}
-            </h1>
-            <p className="mt-8 text-xl leading-9 text-gray-600">
-              {landing.hero.subtitle}
-            </p>
+            {heroSection && heroSection.type === "hero" ? (
+              <Hero settings={heroSection.settings as HeroSettings} />
+            ) : (
+              <span className="inline-flex rounded-full bg-indigo-100 px-4 py-1 text-sm font-semibold text-indigo-700">
+                AI Advertising
+              </span>
+            )}
             <div className="mt-10 flex flex-wrap gap-4">
               <a
-                href={`${TRACKER_BASE_URL}${landing.offerSlug}`}
+                href={`${TRACKER_BASE_URL}${landing.offer.offerSlug}`}
                 className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-8 py-4 font-semibold text-white shadow-lg transition hover:bg-indigo-700"
               >
-                {landing.hero.cta}
+                {heroButtonText}
               </a>
               <a
                 href="#features"
@@ -55,24 +81,11 @@ export default function LandingPage({ landing }: LandingPageProps) {
       ============================================================ */}
       <section className="bg-white py-20">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {landing.benefits.map((benefit) => (
-              <div
-                key={benefit}
-                className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100 text-xl">
-                  ✓
-                </div>
-                <h3 className="mt-6 text-xl font-bold">{benefit}</h3>
-                <p className="mt-3 text-gray-600">
-                  Modern AI tools help streamline repetitive work,
-                  improve productivity, and let your team focus on
-                  higher-value tasks.
-                </p>
-              </div>
-            ))}
-          </div>
+          {benefitsSection && benefitsSection.type === "benefits" ? (
+            <Benefits settings={benefitsSection.settings as BenefitsSettings} />
+          ) : (
+            <div className="text-center text-gray-400">No benefits data</div>
+          )}
         </div>
       </section>
 
@@ -95,20 +108,13 @@ export default function LandingPage({ landing }: LandingPageProps) {
             </p>
           </div>
           <div className="mt-16 grid gap-8 lg:grid-cols-3">
-            {landing.features.map((feature) => (
-              <article
-                key={feature.title}
-                className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-              >
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-indigo-100 text-2xl">
-                  🚀
-                </div>
-                <h3 className="mt-6 text-2xl font-bold">{feature.title}</h3>
-                <p className="mt-4 leading-8 text-gray-600">
-                  {feature.description}
-                </p>
-              </article>
-            ))}
+            {featuresSection && featuresSection.type === "features" ? (
+              <Features settings={featuresSection.settings as FeaturesSettings} />
+            ) : (
+              <div className="col-span-3 text-center text-gray-400">
+                No features data
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -125,10 +131,14 @@ export default function LandingPage({ landing }: LandingPageProps) {
                 The Challenge
               </span>
               <h2 className="mt-4 text-4xl font-black tracking-tight">
-                {landing.problem.title}
+                {problemSection && problemSection.type === "problem"
+                  ? (problemSection.settings as ProblemSettings).title
+                  : "The Problem"}
               </h2>
               <p className="mt-4 text-lg leading-8 text-gray-600">
-                {landing.problem.description}
+                {problemSection && problemSection.type === "problem"
+                  ? (problemSection.settings as ProblemSettings).description
+                  : ""}
               </p>
               <p className="mt-6 text-lg leading-8 text-gray-600">
                 Every day, businesses spend countless hours
@@ -147,10 +157,14 @@ export default function LandingPage({ landing }: LandingPageProps) {
                 The Solution
               </span>
               <h3 className="mt-4 text-3xl font-black">
-                {landing.solution.title}
+                {solutionSection && solutionSection.type === "solution"
+                  ? (solutionSection.settings as SolutionSettings).title
+                  : "AI-Powered Automation"}
               </h3>
               <p className="mt-6 leading-8 text-indigo-100">
-                {landing.solution.description} and many other repetitive business tasks.
+                {solutionSection && solutionSection.type === "solution"
+                  ? (solutionSection.settings as SolutionSettings).description
+                  : ""} and many other repetitive business tasks.
               </p>
               <ul className="mt-10 space-y-5">
                 <li className="flex gap-4">
@@ -217,10 +231,10 @@ export default function LandingPage({ landing }: LandingPageProps) {
             repetitive work, improve efficiency, and support business growth.
           </p>
           <a
-            href={`${TRACKER_BASE_URL}${landing.offerSlug}`}
+            href={`${TRACKER_BASE_URL}${landing.offer.offerSlug}`}
             className="mt-12 inline-flex items-center justify-center rounded-xl bg-indigo-600 px-10 py-5 text-lg font-semibold text-white shadow-lg transition hover:bg-indigo-700"
           >
-            {landing.hero.cta}
+            {heroButtonText}
           </a>
         </div>
       </section>
@@ -244,14 +258,9 @@ export default function LandingPage({ landing }: LandingPageProps) {
             </p>
           </div>
           <div className="mt-14 flex flex-wrap justify-center gap-4">
-            {landing.trust.map((item) => (
-              <span
-                key={item}
-                className="rounded-full border border-indigo-200 bg-indigo-50 px-6 py-3 text-sm font-semibold text-indigo-700"
-              >
-                {item}
-              </span>
-            ))}
+            <span className="rounded-full border border-indigo-200 bg-indigo-50 px-6 py-3 text-sm font-semibold text-indigo-700">
+              {landing.offer.category}
+            </span>
           </div>
         </div>
       </section>
@@ -270,15 +279,11 @@ export default function LandingPage({ landing }: LandingPageProps) {
             </h2>
           </div>
           <div className="mt-14 space-y-6">
-            {landing.faqs.map((faq) => (
-              <div
-                key={faq.question}
-                className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm"
-              >
-                <h3 className="text-xl font-bold">{faq.question}</h3>
-                <p className="mt-4 leading-8 text-gray-600">{faq.answer}</p>
-              </div>
-            ))}
+            {faqSection && faqSection.type === "faq" ? (
+              <FAQ settings={faqSection.settings as FAQSettings} />
+            ) : (
+              <div className="text-center text-gray-400">No FAQs yet</div>
+            )}
           </div>
         </div>
       </section>
@@ -296,10 +301,10 @@ export default function LandingPage({ landing }: LandingPageProps) {
             repetitive work, improve productivity, and grow faster.
           </p>
           <a
-            href={`${TRACKER_BASE_URL}${landing.offerSlug}`}
+            href={`${TRACKER_BASE_URL}${landing.offer.offerSlug}`}
             className="mt-12 inline-flex items-center justify-center rounded-xl bg-white px-10 py-5 text-lg font-bold text-indigo-600 shadow-xl transition hover:scale-105"
           >
-            {landing.hero.cta}
+            {heroButtonText}
           </a>
         </div>
       </section>

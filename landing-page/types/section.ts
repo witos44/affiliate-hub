@@ -1,5 +1,34 @@
 // types/section.ts
 
+// ============================================================
+// Tipe untuk semua section yang tersedia
+// ============================================================
+export type SectionType =
+  | 'hero'
+  | 'benefits'
+  | 'problem'
+  | 'solution'
+  | 'features'
+  | 'faq'
+  | 'cta'
+  | 'comparison'
+  | 'gallery'
+  | 'pricing'
+  | 'testimonials'
+  | 'video';
+
+// ============================================================
+// Base interface yang wajib dimiliki semua section
+// ============================================================
+export interface BaseSection {
+  id?: string; // opsional, untuk anchor link
+  type: SectionType;
+}
+
+// ============================================================
+// Masing‑masing section dengan props spesifik
+// ============================================================
+
 export interface HeroSettings {
   badge: string;
   title: string;
@@ -119,8 +148,18 @@ export type SectionSettings =
 export interface LandingSection {
   id: number;
   landingPageId: number;
-  type: string;
+  type: SectionType; // sekarang menggunakan SectionType
   sortOrder: number;
   settings: SectionSettings;
   isActive: boolean;
+}
+
+// ============================================================
+// Type guard untuk memeriksa tipe section
+// ============================================================
+export function isSectionType<T extends SectionType>(
+  section: LandingSection,
+  type: T
+): section is LandingSection & { type: T } {
+  return section.type === type;
 }
