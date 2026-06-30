@@ -6,6 +6,25 @@ interface LandingPageProps {
   landing: LandingPage;
 }
 
+interface BenefitItem {
+  title?: string;
+  description?: string;
+}
+
+interface FeatureItem {
+  title: string;
+  description: string;
+}
+
+interface TrustItem {
+  label?: string;
+}
+
+interface FAQItem {
+  question: string;
+  answer: string;
+}
+
 export default function LandingPage({ landing }: LandingPageProps) {
   const isDevelopment = process.env.NODE_ENV === "development";
   const TRACKER_BASE_URL = isDevelopment
@@ -56,15 +75,15 @@ export default function LandingPage({ landing }: LandingPageProps) {
       <section className="bg-white py-20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {landing.benefits.map((benefit) => (
+            {landing.benefits.map((benefit: BenefitItem | string) => (
               <div
-                key={benefit}
+                key={typeof benefit === 'string' ? benefit : benefit.title || 'benefit'}
                 className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100 text-xl">
                   ✓
                 </div>
-                <h3 className="mt-6 text-xl font-bold">{benefit}</h3>
+                <h3 className="mt-6 text-xl font-bold">{typeof benefit === 'string' ? benefit : benefit.title || ''}</h3>
                 <p className="mt-3 text-gray-600">
                   Modern AI tools help streamline repetitive work,
                   improve productivity, and let your team focus on
@@ -95,7 +114,7 @@ export default function LandingPage({ landing }: LandingPageProps) {
             </p>
           </div>
           <div className="mt-16 grid gap-8 lg:grid-cols-3">
-            {landing.features.map((feature) => (
+            {landing.features.map((feature: FeatureItem) => (
               <article
                 key={feature.title}
                 className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
@@ -244,12 +263,12 @@ export default function LandingPage({ landing }: LandingPageProps) {
             </p>
           </div>
           <div className="mt-14 flex flex-wrap justify-center gap-4">
-            {landing.trust.map((item) => (
+            {landing.trust.map((item: TrustItem | string) => (
               <span
-                key={item}
+                key={typeof item === 'string' ? item : item.label || 'trust'}
                 className="rounded-full border border-indigo-200 bg-indigo-50 px-6 py-3 text-sm font-semibold text-indigo-700"
               >
-                {item}
+                {typeof item === 'string' ? item : item.label || ''}
               </span>
             ))}
           </div>
@@ -270,7 +289,7 @@ export default function LandingPage({ landing }: LandingPageProps) {
             </h2>
           </div>
           <div className="mt-14 space-y-6">
-            {landing.faqs.map((faq) => (
+            {landing.faqs.map((faq: FAQItem) => (
               <div
                 key={faq.question}
                 className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm"
