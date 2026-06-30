@@ -1,9 +1,9 @@
 // components/public/LandingPage.tsx
 
-import type { LandingPageData } from "@/types/landing";
+import type { LandingPage } from "@/types/landing";
 
 interface LandingPageProps {
-  landing: LandingPageData;
+  landing: LandingPage;
 }
 
 export default function LandingPage({ landing }: LandingPageProps) {

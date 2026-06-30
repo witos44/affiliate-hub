@@ -1,23 +1,39 @@
 ```
 # Dependencies
 node_modules/
-
-# Build outputs
+__pycache__/
+*.egg-info/
 dist/
 build/
-*.js.map
-*.ts.map
-
-# Environment variables
+target/
+.venv/
+venv/
 .env
 .env.local
 *.env.*
 
-# IDE specific
+# Compiled files
+*.pyc
+*.class
+*.o
+*.exe
+*.dll
+*.so
+*.a
+*.obj
+*.out
+
+# Build artifacts
+dist/
+build/
+target/
+
+# Editor/IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
+*.tmp
 
 # Logs
 *.log
@@ -27,24 +43,7 @@ coverage/
 htmlcov/
 .coverage
 
-# Python (if applicable)
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.so
-.Python
-*.egg-info/
-.eggs/
-.venv/
-venv/
-.mypy_cache/
-.pytest_cache/
-
-# Temporary files
-*.tmp
-*~
+# System files
 .DS_Store
 Thumbs.db
 ```
