@@ -1,80 +1,103 @@
-export interface Env {
-  DB: D1Database;
-}
+// src/index.ts
 
+import { AutoRouter } from "itty-router";
+import { corsHeaders } from "./middleware/cors";
+import { setGlobalEnv } from "./middleware/auth"; // <-- TAMBAHKAN INI
+import {
+  handleGetLandingList,
+  handleGetLandingBySlug,
+} from "./routes/public/landings";
+import { handleGetOffers } from "./routes/public/offers";
+import {
+  handleAdminGetLandingList,
+  handleAdminGetLandingById,
+  handleAdminCreateLanding,
+  handleAdminUpdateLanding,
+  handleAdminDeleteLanding,
+  handleAdminPublishLanding,
+  handleAdminUnpublishLanding,
+  handleAdminDuplicateLanding,
+  handleAdminCheckSlug,
+} from "./routes/admin/landings";
+import {
+  handleAdminAddSection,
+  handleAdminUpdateSection,
+  handleAdminDeleteSection,
+  handleAdminToggleSection,
+  handleAdminReorderSections,
+} from "./routes/admin/sections";
+import { handleTrackClick } from "./routes/tracking";
+
+// ============================================================
+// AutoRouter
+// ============================================================
+const router = AutoRouter();
+
+// ============================================================
+// Public Routes
+// ============================================================
+router.get("/api/public/landings", handleGetLandingList);
+router.get("/api/public/landings/:slug", handleGetLandingBySlug);
+router.get("/api/public/offers", handleGetOffers);
+
+// ============================================================
+// Admin Routes
+// ============================================================
+router.get("/api/admin/landings", handleAdminGetLandingList);
+router.get("/api/admin/landings/:id", handleAdminGetLandingById);
+router.post("/api/admin/landings", handleAdminCreateLanding);
+router.put("/api/admin/landings/:id", handleAdminUpdateLanding);
+router.delete("/api/admin/landings/:id", handleAdminDeleteLanding);
+router.post("/api/admin/landings/:id/publish", handleAdminPublishLanding);
+router.post("/api/admin/landings/:id/unpublish", handleAdminUnpublishLanding);
+router.post("/api/admin/landings/:id/duplicate", handleAdminDuplicateLanding);
+router.get("/api/admin/landings/check-slug", handleAdminCheckSlug);
+
+// Section Routes
+router.post("/api/admin/landings/:id/sections", handleAdminAddSection);
+router.put("/api/admin/sections/:id", handleAdminUpdateSection);
+router.delete("/api/admin/sections/:id", handleAdminDeleteSection);
+router.patch("/api/admin/sections/:id/toggle", handleAdminToggleSection);
+router.post("/api/admin/sections/reorder", handleAdminReorderSections);
+
+// Tracking Route
+router.post("/api/track/:offerSlug", handleTrackClick);
+
+// ============================================================
+// CORS & 404 Handler
+// ============================================================
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const url = new URL(request.url);
-    
-    // Tempat kembali yang aman (Frontend Anda) agar tidak terjadi infinite loop
-    const FRONTEND_URL = 'https://affiliate-hub-eej.pages.dev';
-    
-    const pathParts = url.pathname.split('/');
-    // Gunakan .trim() untuk membuang spasi kosong jika tidak sengaja ada di URL
-    const slug = pathParts[2] ? pathParts[2].trim() : "";
+  async fetch(request: Request, env: any): Promise<Response> {
+    // 🔑 Set global env agar bisa diakses oleh validateApiKey
+    setGlobalEnv(env);
 
-    // Jika tidak ada slug, kembalikan ke landing page frontend (bukan ke worker lagi)
-    if (!slug) {
-      return Response.redirect(FRONTEND_URL, 302);
+    // Handle OPTIONS preflight
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: corsHeaders(request),
+      });
     }
 
     try {
-      const offer = await env.DB.prepare(
-        "SELECT destination_url FROM offers WHERE slug = ? LIMIT 1"
-      ).bind(slug).first<{ destination_url: string }>();
-
-      // Jika data benar-benar kosong di database
-      if (!offer) {
-        console.log(`[DEBUG] Query mengembalikan NULL. Slug "${slug}" tidak ditemukan di tabel.`);
-        return Response.redirect(FRONTEND_URL, 302);
-      }
-
-      // Jika data ada tapi kolom destination_url ternyata kosong/null
-      if (!offer.destination_url) {
-        console.log(`[DEBUG] Baris data ditemukan, tetapi kolom destination_url kosong.`);
-        return Response.redirect(FRONTEND_URL, 302);
-      }
-
-      let targetUrl = offer.destination_url.trim();
-      
-      // Keamanan ekstra: Pastikan URL memiliki awalan protokol agar browser tidak error
-      if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
-        targetUrl = 'https://' + targetUrl;
-      }
-
-      console.log(`[DEBUG] BERHASIL! Target URL ditemukan: ${targetUrl}`);
-
-      // 2. LOGGING ASYNC (Mencatat log klik ke tabel outbound_clicks)
-      ctx.waitUntil(
-        (async () => {
-          try {
-            await env.DB.prepare(
-              "INSERT INTO outbound_clicks (slug, clicked_at, user_agent, referrer) VALUES (?, ?, ?, ?)"
-            ).bind(
-              slug,
-              new Date().toISOString(),
-              request.headers.get('user-agent') || 'unknown',
-              request.headers.get('referer') || 'direct'
-            ).run();
-          } catch (e: any) {
-            console.error("❌ Gagal mencatat log klik ke DB:", e.message);
-          }
-        })()
-      );
-
-      // 3. REDIRECT INSTAN KE MERCHANT
-      return new Response(null, {
-        status: 302,
-        headers: {
-          'Location': targetUrl,
-          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-        },
+      const response = await router.fetch(request, env);
+      const cors = corsHeaders(request);
+      Object.entries(cors).forEach(([key, value]) => {
+        response.headers.set(key, value);
       });
-
-    } catch (error: any) {
-      console.error("❌ Tracker Error:", error.message || error);
-      // Lempar kembali ke frontend jika database sedang down/error
-      return Response.redirect(FRONTEND_URL, 302);
+      return response;
+    } catch (error) {
+      console.error("Unhandled error:", error);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: error instanceof Error ? error.message : "Internal Server Error",
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
   },
 };

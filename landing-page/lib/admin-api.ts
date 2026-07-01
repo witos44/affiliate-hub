@@ -1,30 +1,115 @@
 // lib/admin-api.ts
 
+import * as apiClient from "./api-client";
 import type { LandingPage, LandingListItem } from "@/types/landing";
-import type { LandingSection } from "@/types/section";
+import type { LandingSection, SectionType, SectionSettings } from "@/types/section";
 import type { ApiResponse } from "@/types/api";
 import { mockLanding } from "@/mocks/Landing";
 import { mockLandingAdmin } from "@/mocks/landing-admin";
 
 // ============================================================
-// Simulasi delay untuk network latency
+// Deteksi apakah sedang dalam build (static generation)
 // ============================================================
-const delay = (ms: number = 500) => new Promise((resolve) => setTimeout(resolve, ms));
+const isBuildTime = typeof window === "undefined" && process.env.NEXT_PHASE !== "phase-production-server";
 
 // ============================================================
-// Landing Page CRUD
+// Default Settings untuk setiap tipe section (digunakan saat build)
+// ============================================================
+function getDefaultSettings(type: SectionType): SectionSettings {
+  const defaults: Record<SectionType, SectionSettings> = {
+    hero: {
+      badge: "New Section",
+      title: "Hero Title",
+      subtitle: "Hero subtitle goes here",
+      buttonText: "Get Started",
+      buttonUrl: "#",
+    },
+    benefits: {
+      items: ["Benefit 1", "Benefit 2", "Benefit 3", "Benefit 4"],
+    },
+    problem: {
+      title: "What's the Problem?",
+      description: "Describe the problem here.",
+    },
+    solution: {
+      title: "The Solution",
+      description: "Describe the solution here.",
+    },
+    features: {
+      items: [
+        { title: "Feature 1", description: "Description of feature 1" },
+        { title: "Feature 2", description: "Description of feature 2" },
+        { title: "Feature 3", description: "Description of feature 3" },
+      ],
+    },
+    faq: {
+      items: [
+        { question: "Question 1?", answer: "Answer 1." },
+        { question: "Question 2?", answer: "Answer 2." },
+      ],
+    },
+    cta: {
+      title: "Call to Action",
+      subtitle: "This is a call to action section",
+      buttonText: "Get Started",
+      buttonUrl: "#",
+    },
+    comparison: {
+      title: "Comparison",
+      subtitle: "Compare us with others",
+      items: [
+        { feature: "Feature 1", us: "Yes", others: "No" },
+        { feature: "Feature 2", us: "Yes", others: "Yes" },
+      ],
+    },
+    gallery: {
+      title: "Gallery",
+      subtitle: "Image gallery",
+      images: [
+        { image: "/placeholder.jpg", title: "Image 1" },
+        { image: "/placeholder.jpg", title: "Image 2" },
+      ],
+    },
+    pricing: {
+      title: "Pricing",
+      subtitle: "Choose your plan",
+      plans: [
+        {
+          name: "Basic",
+          price: "$9",
+          description: "Basic plan",
+          button: "Get Started",
+          url: "#",
+        },
+      ],
+    },
+    testimonials: {
+      title: "Testimonials",
+      subtitle: "What people say",
+      items: [
+        {
+          name: "John Doe",
+          role: "CEO",
+          message: "Great product!",
+        },
+      ],
+    },
+    video: {
+      title: "Video",
+      subtitle: "Watch this video",
+      url: "https://www.youtube.com/embed/VIDEO_ID",
+    },
+  };
+  return defaults[type] || defaults["hero"];
+}
+
+// ============================================================
+// Helper: Get mock data for build time
 // ============================================================
 
-/**
- * Get all landing pages (for admin list)
- */
-export async function getAdminLandingList(): Promise<ApiResponse<LandingListItem[]>> {
-  await delay(300);
-
-  // Gunakan data dari mockLandingAdmin jika ada, atau fallback dari mockLanding
+function getMockLandingList(): LandingListItem[] {
   const list: LandingListItem[] = [];
 
-  // Tambahkan dari mockLanding
   list.push({
     id: mockLanding.data.id,
     slug: mockLanding.data.slug,
@@ -33,10 +118,9 @@ export async function getAdminLandingList(): Promise<ApiResponse<LandingListItem
     status: mockLanding.data.status,
   });
 
-  // Tambahkan dari mockLandingAdmin
   if (mockLandingAdmin && mockLandingAdmin.length > 0) {
-    mockLandingAdmin.forEach((item: LandingPage) => {
-      if (!list.find((l: LandingListItem) => l.id === item.id)) {
+    mockLandingAdmin.forEach((item) => {
+      if (!list.find((l) => l.id === item.id)) {
         list.push({
           id: item.id,
           slug: item.slug,
@@ -48,262 +132,300 @@ export async function getAdminLandingList(): Promise<ApiResponse<LandingListItem
     });
   }
 
-  return {
-    success: true,
-    data: list,
-  };
+  return list;
 }
 
-/**
- * Get single landing page by ID (for editing)
- */
-export async function getAdminLandingById(id: number): Promise<ApiResponse<LandingPage>> {
-  await delay(400);
-
-  // Cari di mockLandingAdmin
-  let landing: LandingPage | undefined = mockLandingAdmin?.find((l: LandingPage) => l.id === id);
-
-  // Fallback ke mockLanding jika id cocok
+function getMockLandingById(id: number): LandingPage | null {
+  let landing = mockLandingAdmin?.find((l) => l.id === id);
   if (!landing && mockLanding.data.id === id) {
     landing = mockLanding.data;
   }
-
-  if (!landing) {
-    return {
-      success: false,
-      message: `Landing page with ID ${id} not found`,
-      data: null as any,
-    };
-  }
-
-  return {
-    success: true,
-    data: landing,
-  };
+  return landing || null;
 }
 
-/**
- * Get single landing page by slug (for frontend)
- */
-export async function getAdminLandingBySlug(slug: string): Promise<ApiResponse<LandingPage>> {
-  await delay(300);
-
-  // Cari di mockLandingAdmin
-  let landing: LandingPage | undefined = mockLandingAdmin?.find((l: LandingPage) => l.slug === slug);
-
-  // Fallback ke mockLanding jika slug cocok
+function getMockLandingBySlug(slug: string): LandingPage | null {
+  let landing = mockLandingAdmin?.find((l) => l.slug === slug);
   if (!landing && mockLanding.data.slug === slug) {
     landing = mockLanding.data;
   }
+  return landing || null;
+}
 
-  if (!landing) {
+// ============================================================
+// Landing Page CRUD (dengan fallback mock untuk build)
+// ============================================================
+
+export async function getAdminLandingList(): Promise<ApiResponse<LandingListItem[]>> {
+  if (isBuildTime) {
     return {
-      success: false,
-      message: `Landing page with slug "${slug}" not found`,
-      data: null as any,
+      success: true,
+      data: getMockLandingList(),
     };
   }
+  return apiClient.getAdminLandingList();
+}
 
+export async function getAdminLandingById(id: number): Promise<ApiResponse<LandingPage>> {
+  if (isBuildTime) {
+    const data = getMockLandingById(id);
+    if (!data) {
+      return {
+        success: false,
+        message: `Landing page with ID ${id} not found`,
+        data: null as any,
+      };
+    }
+    return {
+      success: true,
+      data,
+    };
+  }
+  return apiClient.getAdminLandingById(id);
+}
+
+export async function getAdminLandingBySlug(slug: string): Promise<ApiResponse<LandingPage>> {
+  if (isBuildTime) {
+    const data = getMockLandingBySlug(slug);
+    if (!data) {
+      return {
+        success: false,
+        message: `Landing page with slug "${slug}" not found`,
+        data: null as any,
+      };
+    }
+    return {
+      success: true,
+      data,
+    };
+  }
+  const data = await apiClient.getLandingBySlug(slug);
   return {
     success: true,
-    data: landing,
+    data,
   };
 }
 
-/**
- * Create new landing page
- */
 export async function createAdminLanding(
   data: Omit<LandingPage, "id">
 ): Promise<ApiResponse<LandingPage>> {
-  await delay(600);
-
-  const newLanding: LandingPage = {
-    ...data,
-    id: Date.now(), // Mock ID generation
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    sections: data.sections || [],
-  };
-
-  // Simpan ke mock (di memory, sebenarnya tidak persist)
-  console.log("Creating landing page:", newLanding);
-
-  return {
-    success: true,
-    data: newLanding,
-  };
+  if (isBuildTime) {
+    return {
+      success: true,
+      data: {
+        ...data,
+        id: Date.now(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    };
+  }
+  return apiClient.createAdminLanding(data);
 }
 
-/**
- * Update existing landing page
- */
 export async function updateAdminLanding(
   id: number,
   data: Partial<LandingPage>
 ): Promise<ApiResponse<LandingPage>> {
-  await delay(500);
-
-  // Cari landing yang akan diupdate
-  let existing: LandingPage | undefined;
-
-  if (mockLanding.data.id === id) {
-    existing = { ...mockLanding.data };
-  } else if (mockLandingAdmin) {
-    existing = mockLandingAdmin.find((l: LandingPage) => l.id === id);
-  }
-
-  if (!existing) {
+  if (isBuildTime) {
+    const existing = getMockLandingById(id);
+    if (!existing) {
+      return {
+        success: false,
+        message: `Landing page with ID ${id} not found`,
+        data: null as any,
+      };
+    }
     return {
-      success: false,
-      message: `Landing page with ID ${id} not found`,
-      data: null as any,
+      success: true,
+      data: {
+        ...existing,
+        ...data,
+        id,
+        updatedAt: new Date().toISOString(),
+      },
     };
   }
-
-  const updated: LandingPage = {
-    ...existing,
-    ...data,
-    id, // Pastikan ID tetap sama
-    updatedAt: new Date().toISOString(),
-  };
-
-  console.log("Updating landing page:", updated);
-
-  return {
-    success: true,
-    data: updated,
-  };
+  return apiClient.updateAdminLanding(id, data);
 }
 
-/**
- * Delete landing page
- */
 export async function deleteAdminLanding(id: number): Promise<ApiResponse<null>> {
-  await delay(400);
-
-  console.log("Deleting landing page with ID:", id);
-
-  return {
-    success: true,
-    data: null,
-    message: `Landing page ${id} deleted successfully`,
-  };
+  if (isBuildTime) {
+    return {
+      success: true,
+      data: null,
+      message: `Landing page ${id} deleted (mock)`,
+    };
+  }
+  return apiClient.deleteAdminLanding(id);
 }
 
-/**
- * Publish landing page (set status to published)
- */
 export async function publishAdminLanding(id: number): Promise<ApiResponse<LandingPage>> {
-  await delay(500);
-
-  const response = await getAdminLandingById(id);
-  if (!response.success || !response.data) {
+  if (isBuildTime) {
+    const existing = getMockLandingById(id);
+    if (!existing) {
+      return {
+        success: false,
+        message: `Landing page with ID ${id} not found`,
+        data: null as any,
+      };
+    }
     return {
-      success: false,
-      message: `Landing page with ID ${id} not found`,
-      data: null as any,
+      success: true,
+      data: {
+        ...existing,
+        status: "published",
+        publishedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
     };
   }
-
-  const published: LandingPage = {
-    ...response.data,
-    status: "published" as const,
-    publishedAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  console.log("Publishing landing page:", published);
-
-  return {
-    success: true,
-    data: published,
-  };
+  return apiClient.publishAdminLanding(id);
 }
 
-/**
- * Unpublish landing page (set status to draft)
- */
 export async function unpublishAdminLanding(id: number): Promise<ApiResponse<LandingPage>> {
-  await delay(500);
-
-  const response = await getAdminLandingById(id);
-  if (!response.success || !response.data) {
+  if (isBuildTime) {
+    const existing = getMockLandingById(id);
+    if (!existing) {
+      return {
+        success: false,
+        message: `Landing page with ID ${id} not found`,
+        data: null as any,
+      };
+    }
     return {
-      success: false,
-      message: `Landing page with ID ${id} not found`,
-      data: null as any,
+      success: true,
+      data: {
+        ...existing,
+        status: "draft",
+        updatedAt: new Date().toISOString(),
+      },
     };
   }
-
-  const unpublished: LandingPage = {
-    ...response.data,
-    status: "draft" as const,
-    updatedAt: new Date().toISOString(),
-  };
-
-  console.log("Unpublishing landing page:", unpublished);
-
-  return {
-    success: true,
-    data: unpublished,
-  };
+  return apiClient.unpublishAdminLanding(id);
 }
 
-/**
- * Duplicate landing page
- */
 export async function duplicateAdminLanding(id: number): Promise<ApiResponse<LandingPage>> {
-  await delay(700);
-
-  const response = await getAdminLandingById(id);
-  if (!response.success || !response.data) {
+  if (isBuildTime) {
+    const existing = getMockLandingById(id);
+    if (!existing) {
+      return {
+        success: false,
+        message: `Landing page with ID ${id} not found`,
+        data: null as any,
+      };
+    }
     return {
-      success: false,
-      message: `Landing page with ID ${id} not found`,
-      data: null as any,
+      success: true,
+      data: {
+        ...existing,
+        id: Date.now(),
+        slug: `${existing.slug}-copy-${Date.now()}`,
+        title: `${existing.title} (Copy)`,
+        status: "draft",
+        publishedAt: undefined,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
     };
   }
-
-  const original = response.data;
-  const duplicated: LandingPage = {
-    ...original,
-    id: Date.now(),
-    slug: `${original.slug}-copy-${Date.now()}`,
-    title: `${original.title} (Copy)`,
-    status: "draft",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    publishedAt: undefined,
-    sections: original.sections.map((s: LandingSection) => ({
-      ...s,
-      id: s.id + 1000, // Simple offset to avoid ID conflict
-      settings: JSON.parse(JSON.stringify(s.settings)),
-    })),
-  };
-
-  console.log("Duplicating landing page:", duplicated);
-
-  return {
-    success: true,
-    data: duplicated,
-  };
+  return apiClient.duplicateAdminLanding(id);
 }
 
-/**
- * Check if slug is available
- */
-export async function checkSlugAvailability(slug: string): Promise<ApiResponse<{ available: boolean }>> {
-  await delay(200);
+export async function checkSlugAvailability(
+  slug: string
+): Promise<ApiResponse<{ available: boolean }>> {
+  if (isBuildTime) {
+    const isTaken = mockLandingAdmin?.some((l) => l.slug === slug) || mockLanding.data.slug === slug;
+    return {
+      success: true,
+      data: { available: !isTaken },
+    };
+  }
+  return apiClient.checkSlugAvailability(slug);
+}
 
-  // Cek apakah slug sudah digunakan
-  const isTaken = mockLandingAdmin?.some((l: LandingPage) => l.slug === slug) ||
-                  mockLanding.data.slug === slug;
+// ============================================================
+// Section Management (fallback mock untuk build)
+// ============================================================
 
-  return {
-    success: true,
-    data: {
-      available: !isTaken,
-    },
-  };
+export async function addSectionToLanding(
+  landingId: number,
+  type: SectionType
+): Promise<ApiResponse<LandingSection>> {
+  if (isBuildTime) {
+    return {
+      success: true,
+      data: {
+        id: Date.now(),
+        landingPageId: landingId,
+        type,
+        sortOrder: 99,
+        isActive: true,
+        settings: getDefaultSettings(type),
+      },
+    };
+  }
+  return apiClient.addSectionToLanding(landingId, type);
+}
+
+export async function updateSection(
+  sectionId: number,
+  data: Partial<LandingSection>
+): Promise<ApiResponse<LandingSection>> {
+  if (isBuildTime) {
+    // Jika data.settings tidak disediakan, gunakan default settings berdasarkan tipe
+    const settings = data.settings
+      ? data.settings
+      : getDefaultSettings(data.type || "hero");
+
+    return {
+      success: true,
+      data: {
+        id: sectionId,
+        landingPageId: data.landingPageId || 0,
+        type: data.type || "hero",
+        sortOrder: data.sortOrder || 1,
+        isActive: data.isActive ?? true,
+        settings,
+        ...data,
+      },
+    };
+  }
+  return apiClient.updateSection(sectionId, data);
+}
+
+export async function deleteSection(sectionId: number): Promise<ApiResponse<null>> {
+  if (isBuildTime) {
+    return {
+      success: true,
+      data: null,
+      message: `Section ${sectionId} deleted (mock)`,
+    };
+  }
+  return apiClient.deleteSection(sectionId);
+}
+
+export async function reorderSections(
+  sectionIds: number[]
+): Promise<ApiResponse<{ reordered: boolean }>> {
+  if (isBuildTime) {
+    return {
+      success: true,
+      data: { reordered: true },
+    };
+  }
+  return apiClient.reorderSections(sectionIds);
+}
+
+export async function toggleSectionActive(
+  sectionId: number,
+  isActive: boolean
+): Promise<ApiResponse<{ id: number; isActive: boolean }>> {
+  if (isBuildTime) {
+    return {
+      success: true,
+      data: { id: sectionId, isActive },
+    };
+  }
+  return apiClient.toggleSectionActive(sectionId, isActive);
 }
