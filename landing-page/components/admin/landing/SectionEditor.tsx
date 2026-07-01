@@ -15,7 +15,37 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import type { LandingSection, SectionType, SectionSettings } from "@/types/section";
+import type {
+  LandingSection,
+  SectionType,
+  SectionSettings,
+  HeroSettings,
+  BenefitsSettings,
+  ProblemSettings,
+  SolutionSettings,
+  FeaturesSettings,
+  FAQSettings,
+  CTASettings,
+  ComparisonSettings,
+  GallerySettings,
+  PricingSettings,
+  TestimonialsSettings,
+  VideoSettings,
+} from "@/types/section";
+
+// Import semua editor spesifik
+import { HeroEditor } from "./editors/HeroEditor";
+import { BenefitsEditor } from "./editors/BenefitsEditor";
+import { ProblemEditor } from "./editors/ProblemEditor";
+import { SolutionEditor } from "./editors/SolutionEditor";
+import { FeaturesEditor } from "./editors/FeaturesEditor";
+import { FAQEditor } from "./editors/FAQEditor";
+import { CTAEditor } from "./editors/CTAEditor";
+import { ComparisonEditor } from "./editors/ComparisonEditor";
+import { GalleryEditor } from "./editors/GalleryEditor";
+import { PricingEditor } from "./editors/PricingEditor";
+import { TestimonialsEditor } from "./editors/TestimonialsEditor";
+import { VideoEditor } from "./editors/VideoEditor";
 
 interface SectionEditorProps {
   open: boolean;
@@ -150,74 +180,205 @@ export function SectionEditor({
     }
   };
 
-  const renderSettingsEditor = () => {
-    const settings = editingSection.settings;
-    const type = editingSection.type;
+  const renderEditor = () => {
+    const { type, settings } = editingSection;
 
-    // Generic editor - renders fields based on settings object
-    return (
-      <div className="space-y-4">
-        {Object.entries(settings).map(([key, value]) => {
-          // Skip complex objects (handled separately by specific editors in Batch 4)
-          if (typeof value === "object" && value !== null) {
-            return (
-              <div key={key} className="space-y-2">
-                <Label className="text-sm font-medium capitalize">
-                  {key.replace(/([A-Z])/g, " $1").trim()}
-                </Label>
-                <p className="text-sm text-gray-500">
-                  Complex field: {key} ({Array.isArray(value) ? "Array" : "Object"})
-                </p>
-              </div>
-            );
-          }
-
-          return (
-            <div key={key} className="space-y-2">
-              <Label htmlFor={key} className="text-sm font-medium capitalize">
-                {key.replace(/([A-Z])/g, " $1").trim()}
-              </Label>
-              {typeof value === "string" && value.length > 100 ? (
-                <Textarea
-                  id={key}
-                  value={value as string}
-                  onChange={(e) => handleChange(key, e.target.value)}
-                  rows={3}
-                />
-              ) : typeof value === "string" ? (
-                <Input
-                  id={key}
-                  value={value as string}
-                  onChange={(e) => handleChange(key, e.target.value)}
-                />
-              ) : typeof value === "boolean" ? (
-                <Switch
-                  checked={value as boolean}
-                  onCheckedChange={(checked) => handleChange(key, checked)}
-                />
-              ) : typeof value === "number" ? (
-                <Input
-                  id={key}
-                  type="number"
-                  value={value as number}
-                  onChange={(e) => handleChange(key, parseInt(e.target.value))}
-                />
-              ) : (
-                <Input
-                  id={key}
-                  value={String(value)}
-                  onChange={(e) => handleChange(key, e.target.value)}
-                />
-              )}
-            </div>
-          );
-        })}
-
-        {Object.keys(settings).length === 0 && (
-          <p className="text-sm text-gray-500">No settings configured.</p>
-        )}
-      </div>
-    );
+    switch (type) {
+      case "hero":
+        return (
+          <HeroEditor
+            settings={settings as HeroSettings}
+            onChange={(newSettings) =>
+              setEditingSection((prev) =>
+                prev ? { ...prev, settings: newSettings } : null
+              )
+            }
+          />
+        );
+      case "benefits":
+        return (
+          <BenefitsEditor
+            settings={settings as BenefitsSettings}
+            onChange={(newSettings) =>
+              setEditingSection((prev) =>
+                prev ? { ...prev, settings: newSettings } : null
+              )
+            }
+          />
+        );
+      case "problem":
+        return (
+          <ProblemEditor
+            settings={settings as ProblemSettings}
+            onChange={(newSettings) =>
+              setEditingSection((prev) =>
+                prev ? { ...prev, settings: newSettings } : null
+              )
+            }
+          />
+        );
+      case "solution":
+        return (
+          <SolutionEditor
+            settings={settings as SolutionSettings}
+            onChange={(newSettings) =>
+              setEditingSection((prev) =>
+                prev ? { ...prev, settings: newSettings } : null
+              )
+            }
+          />
+        );
+      case "features":
+        return (
+          <FeaturesEditor
+            settings={settings as FeaturesSettings}
+            onChange={(newSettings) =>
+              setEditingSection((prev) =>
+                prev ? { ...prev, settings: newSettings } : null
+              )
+            }
+          />
+        );
+      case "faq":
+        return (
+          <FAQEditor
+            settings={settings as FAQSettings}
+            onChange={(newSettings) =>
+              setEditingSection((prev) =>
+                prev ? { ...prev, settings: newSettings } : null
+              )
+            }
+          />
+        );
+      case "cta":
+        return (
+          <CTAEditor
+            settings={settings as CTASettings}
+            onChange={(newSettings) =>
+              setEditingSection((prev) =>
+                prev ? { ...prev, settings: newSettings } : null
+              )
+            }
+          />
+        );
+      case "comparison":
+        return (
+          <ComparisonEditor
+            settings={settings as ComparisonSettings}
+            onChange={(newSettings) =>
+              setEditingSection((prev) =>
+                prev ? { ...prev, settings: newSettings } : null
+              )
+            }
+          />
+        );
+      case "gallery":
+        return (
+          <GalleryEditor
+            settings={settings as GallerySettings}
+            onChange={(newSettings) =>
+              setEditingSection((prev) =>
+                prev ? { ...prev, settings: newSettings } : null
+              )
+            }
+          />
+        );
+      case "pricing":
+        return (
+          <PricingEditor
+            settings={settings as PricingSettings}
+            onChange={(newSettings) =>
+              setEditingSection((prev) =>
+                prev ? { ...prev, settings: newSettings } : null
+              )
+            }
+          />
+        );
+      case "testimonials":
+        return (
+          <TestimonialsEditor
+            settings={settings as TestimonialsSettings}
+            onChange={(newSettings) =>
+              setEditingSection((prev) =>
+                prev ? { ...prev, settings: newSettings } : null
+              )
+            }
+          />
+        );
+      case "video":
+        return (
+          <VideoEditor
+            settings={settings as VideoSettings}
+            onChange={(newSettings) =>
+              setEditingSection((prev) =>
+                prev ? { ...prev, settings: newSettings } : null
+              )
+            }
+          />
+        );
+      default:
+        // Fallback generic editor
+        return (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-500">
+              Unknown section type: {type}. Using generic editor.
+            </p>
+            {Object.entries(settings).map(([key, value]) => {
+              if (typeof value === "object" && value !== null) {
+                return (
+                  <div key={key} className="space-y-2">
+                    <Label className="text-sm font-medium capitalize">
+                      {key.replace(/([A-Z])/g, " $1").trim()}
+                    </Label>
+                    <p className="text-sm text-gray-500">
+                      Complex field: {key} ({Array.isArray(value) ? "Array" : "Object"})
+                    </p>
+                  </div>
+                );
+              }
+              return (
+                <div key={key} className="space-y-2">
+                  <Label htmlFor={key} className="text-sm font-medium capitalize">
+                    {key.replace(/([A-Z])/g, " $1").trim()}
+                  </Label>
+                  {typeof value === "string" && value.length > 100 ? (
+                    <Textarea
+                      id={key}
+                      value={value as string}
+                      onChange={(e) => handleChange(key, e.target.value)}
+                      rows={3}
+                    />
+                  ) : typeof value === "string" ? (
+                    <Input
+                      id={key}
+                      value={value as string}
+                      onChange={(e) => handleChange(key, e.target.value)}
+                    />
+                  ) : typeof value === "boolean" ? (
+                    <Switch
+                      checked={value as boolean}
+                      onCheckedChange={(checked) => handleChange(key, checked)}
+                    />
+                  ) : typeof value === "number" ? (
+                    <Input
+                      id={key}
+                      type="number"
+                      value={value as number}
+                      onChange={(e) => handleChange(key, parseInt(e.target.value))}
+                    />
+                  ) : (
+                    <Input
+                      id={key}
+                      value={String(value)}
+                      onChange={(e) => handleChange(key, e.target.value)}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        );
+    }
   };
 
   return (
@@ -266,7 +427,7 @@ export function SectionEditor({
           {/* Settings editor */}
           <div className="border-t pt-4">
             <h4 className="text-sm font-medium mb-4">Settings</h4>
-            {renderSettingsEditor()}
+            {renderEditor()}
           </div>
         </div>
 
